@@ -3,12 +3,6 @@ import unicodedata
 from pypdf import PdfReader
 import re
 
-"""à part le répertoire, tout sera stocké en minuscule"""
-dictionnaire_francais: set = set()
-mots_a_exclure: set = set()
-REPERTOIRE: str = ""
-RANGEMENT: dict = {}
-
 
 def charger_un_dictionnaire(fichier: str) -> set:
     """Charge un fichier dictionnaire et retourne l'ensemble des mots."""
@@ -55,9 +49,10 @@ def est_nom_dossier_valide(nom: str) -> bool:
 
 def traiter_pdf(fichier_pdf: Path) -> None:
     """Traite un fichier PDF : extrait le texte, identifie les mots-clés et propose un rangement."""
-    global rangement
+    global rangement # à déclarer, car on va le modifier dans cette fonction
     print(f"\033[92mFichier : {fichier_pdf}\033[0m")
-    mots_cles_possibles = set()
+    mots_cles_detectes  = set()  # résultats des regex (REGEX_PATTERNS)
+    mots_cles_possibles = set()  # autres chaînes de texte susceptibles d'être des mots-clés
 
     try:
         reader = PdfReader(fichier_pdf)
@@ -68,6 +63,10 @@ def traiter_pdf(fichier_pdf: Path) -> None:
             if texte:
                 texte = unicodedata.normalize("NFKC", texte) # sinon on obtient des ligatures comme le caractère 'ﬁ' au lieu de 'fi'
                 mots = re.findall(r"[-@.\w]+", texte, flags=re.UNICODE)
+
+                # détection par expressions régulières définies dans REGEX_PATTERNS
+                for pattern in REGEX_PATTERNS:
+                    mots_cles_detectes.update(re.compile(REGEX_PATTERNS[pattern], re.IGNORECASE).findall(texte))
 
                 # on ajoute les mots validant plusieurs critères
                 mots_cles_possibles.update({
@@ -87,6 +86,8 @@ def traiter_pdf(fichier_pdf: Path) -> None:
         # vérification automatique du rangement selon le CSV (sensibiité à la casse)
         if not verifier_et_deplacer_pdf(fichier_pdf, mots_cles_possibles):
             # choix d'un mot-clé par l'utilisateur puis rajout
+            if mots_cles_detectes:
+                print("\033[95mDétectés (regex) :", sorted(mots_cles_detectes), "\033[0m")
             if mots_cles_possibles:
                 print(sorted(mots_cles_possibles))
                 mot_cle = input("\033[96mMot-clé pour rangement (ou Entrée pour passer) : \033[0m").strip()
@@ -139,7 +140,16 @@ if __name__ == "__main__":
     FICHIER_EXCLURE      = r"Mots_a_exclure.dic"
     FICHIER_RANGEMENT    = r"Rangement.csv"
     REPERTOIRE           = r"C:\Users\thomas.platz\Downloads\PDF_Tests"
+    REGEX_PATTERNS = {
+        "address": r"(?:\d{1,5}(?: (?:bis|ter))?,? )?(?:avenue|bd|boulevard|chemin|cours|impasse|rue) ['.0-9A-Za-zÀ-ÖØ-öø-ÿ- ]+",
+        "cp":      r"(?:\d{4,5})\\h*[A-Za-zÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸàâäçéèêëîïôöùûüÿ]+(?:[\t ]+cedex\\h*\d+)?",
+        "iban":    r"[A-Z]{2}\d{2}\\h?(?:\d{4}\\h?){2}\d{2}\\h?[0-9]{2}\\h?(?:[0-9]{4}\\h?){2}[0-9]+",
+        "mail":    r"[\w.-]+@[\w.-]+\.[a-zA-Z]{2,6}",
+        "tel":     r"(?:0|\+\d{2,3} |\+\d{2,3} \(0\) ?)\d(?:[-_. ]?\d{2}){4}",
+        "web":     r"(?:https?://|www\.)[a-zA-Z0-9.-]+\.[a-z]{2,6}"
+    }
 
+    """à part le répertoire, tout sera stocké en minuscule"""
     dictionnaire_francais          = charger_un_dictionnaire(FICHIER_DICTIONNAIRE)
     dictionnaire_sans_diacritiques = {convertir_diacritiques(mot.lower()) for mot in dictionnaire_francais}
     dictionnaire_global            = dictionnaire_francais | dictionnaire_sans_diacritiques
