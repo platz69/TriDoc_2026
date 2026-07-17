@@ -70,7 +70,7 @@ Pour chaque PDF dans le répertoire configuré :
 Modifier `REPERTOIRE` dans le bloc `if __name__ == "__main__"` :
 
 ```python
-REPERTOIRE = r"C:\Users\thomas.platz\Downloads\PDF_Tests"
+REPERTOIRE = r"C:\Users\...\Downloads\PDF_Tests"
 ```
 
 ### Fichiers de configuration
@@ -97,7 +97,7 @@ REGEX_PATTERNS: list = [
 ## Exemple de flux utilisateur
 
 ```
-Fichier : C:\Users\thomas.platz\Downloads\PDF_Tests\document.pdf
+Fichier : C:\Users\platz69\Downloads\PDF_Tests\document.pdf
 
 [page 1] Texte extrait...
 [page 2] Texte extrait...
@@ -107,7 +107,7 @@ Fichier : C:\Users\thomas.platz\Downloads\PDF_Tests\document.pdf
 Détectés (regex) : ['69003', 'SIREN123456789']
 
 Mot-clé pour rangement (ou Entrée pour passer) : cgi
-✓ PDF déplacé vers : C:\Users\thomas.platz\Downloads\PDF_Tests\CGI\document.pdf
+✓ PDF déplacé vers : C:\Users\...\Downloads\PDF_Tests\...\document.pdf
 
 Ajouter des mots à exclure séparés par des virgules (ou Entrée pour passer) : 
 ```
@@ -122,20 +122,3 @@ Ajouter des mots à exclure séparés par des virgules (ou Entrée pour passer) 
 - `est_nom_dossier_valide()` : Vérifie les caractères interdits Windows
 - `sauvegarder_rangement()` : Persiste le mapping mot-clé → dossier
 - `sauvegarder_mots_a_exclure()` : Persiste la liste d'exclusion
-
-## Améliorations envisageables
-
-- Support des PDFs scannés (OCR avec Tesseract)
-- Alternative à pypdf : `pdfminer.six` pour extraction layout-aware
-- Logging structuré
-- Tests unitaires
-- Interface graphique
-- Batch processing optimisé
-
-## Licence
-
-À spécifier
-
-## Auteur
-
-platz69
